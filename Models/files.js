@@ -50,8 +50,8 @@ File.init(
   timestamps: true
 });
 
-// File.belongsTo(User, { foreignKey: 'userId' });
-// File.belongsTo(Folder, { foreignKey: 'folderId' });
+File.belongsTo(User, { foreignKey: 'userId' });
+File.belongsTo(Folder, { foreignKey: 'folderId' });
 
 // File.sync()
 // .then(() => {

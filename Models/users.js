@@ -10,7 +10,7 @@ User.init(
     primaryKey: true,
     autoIncrement: true
   },
-  username: {
+  user_name: {
     type: DataTypes.STRING,
     allowNull: false,
     unique: true
@@ -19,6 +19,14 @@ User.init(
     type: DataTypes.STRING,
     allowNull: false,
     unique: true
+  },
+  gender: {
+    type: DataTypes.ENUM('Male', 'Female', 'Other'),
+    allowNull: false,
+  },
+  phone: {
+    type: DataTypes.STRING,
+    allowNull: false,
   },
   password: {
     type: DataTypes.STRING,

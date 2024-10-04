@@ -5,7 +5,7 @@ const router = express.Router();
 // Create a new folder
 router.post('/', createFolder);
 
-router.get('/parent/0', getParentFolders);
+router.get('/parent/:id', getParentFolders);
 
 // Get a specific folder by ID
 router.get('/:id', getFolderById);

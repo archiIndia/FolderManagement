@@ -33,7 +33,7 @@ Folder.init(
     },
     status: {
       type: DataTypes.ENUM("active", "deleted"),
-      default: "active",
+      defaultValue: "active",
     },
   },
   {
@@ -43,8 +43,8 @@ Folder.init(
   }
 );
 
-// Folder.belongsTo(User, { foreignKey: "userId" });
-// Folder.hasMany(Folder, { as: "subFolders", foreignKey: "parentFolderId" });
+Folder.belongsTo(User, { foreignKey: "userId" });
+Folder.hasMany(Folder, { as: "subFolders", foreignKey: "parentFolderId" });
 
 // Folder.sync().then(() => {
 //   console.log("Database & tables created!");
