@@ -1,5 +1,5 @@
 const { hashSync, compare } = require('bcrypt');
-const User = require('../Models/users');
+const User = require('../Models/users.js');
 const jwt= require('jsonwebtoken');
 
 const createUser = async (req, res) => {

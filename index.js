@@ -1,19 +1,27 @@
 const express = require("express");
 const bodyParser = require('body-parser');
 const cors= require('cors');
-const DB= require('./DBconnection');
-require('dotenv').config();
+const DB= require('./DBconnection.js');
+const multer= require('multer');
+const upload = multer({ dest: 'uploads/' });
 
-const app = express();
+require('dotenv').config();
+const app = express()
+
+app.post('/profile', upload.single('avatar'), function (req, res, next) {
+  // req.file is the `avatar` file
+  // req.body will hold the text fields, if there were any
+})
 
 // Middleware
 app.use(bodyParser.json());
 app.use(cors());
+app.use(express.static('public'));
 
 // Routes
-app.use('/users', require('./Routes/userRoutes'));
-app.use('/folders', require('./Routes/folderRoutes'));
-app.use('/files', require('./Routes/fileRoutes'));
+app.use('/users', require('./Routes/userRoutes.js'));
+app.use('/folders', require('./Routes/folderRoutes.js'));
+app.use('/files', require('./Routes/fileRoutes.js'));
 
 // Error Handling Middleware (optional)
 app.use((err, req, res, next) => {
