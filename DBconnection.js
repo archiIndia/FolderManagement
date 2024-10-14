@@ -10,6 +10,6 @@ const db_connection = new Sequelize('home_project', 'root', process.env.SECRET, 
 });
 
 db_connection.authenticate();
-  console.log('Connection has been established successfully.');
+console.log("Connection has been established successfully.");
 
-  module.exports= {db_connection}
+module.exports = { db_connection };

@@ -1,6 +1,6 @@
-const { DataTypes, Sequelize, Model } = require("sequelize");
-const User = require("./users");
-const { db_connection } = require("../DBconnection");
+const { DataTypes, Model } = require("sequelize");
+const User = require("./users.js");
+const { db_connection } = require("../DBconnection.js");
 
 class Folder extends Model {}
 
