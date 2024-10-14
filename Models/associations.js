@@ -1,6 +1,6 @@
 const User = require('./users.js');
 const Folder = require('./folders.js');
-const File = require('./files.cjs');
+const File = require('./files.js');
 
 // User to Folders
 User.hasMany(Folder, { foreignKey: 'userId' });
