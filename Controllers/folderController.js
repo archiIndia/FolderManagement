@@ -1,3 +1,4 @@
+const File = require("../Models/files.js");
 const Folder = require("../Models/folders.js");
 
 const createFolder = async (req, res) => {
@@ -21,31 +22,33 @@ const getFoldersByUser = async (req, res) => {
   }
 };
 
-const getParentFolders = async (req, res) => {
+const getFoldersWithFiles = async (req, res) => {
   try {
     const folder_id = req.params.id;
     console.log("folder_id", req.params.id);
     if (folder_id === "root") {
-      const root_folders = await Folder.findAll({ where: { parentFolderId: null } });
-      res.status(200).json(root_folders);
+      const parent_folders = await Folder.findAll({ where: { parentFolderId: null,status: 'active' }});
+      const root_files = await File.findAll({where: {folderId: null,status: 'active'}});
+      res.status(200).json({folders:parent_folders, files:root_files}); 
     } else {
-      const parent_folders = await Folder.findAll({ where: { parentFolderId: folder_id } });
-      res.status(200).json(parent_folders);
+      const folders = await Folder.findAll({ where: { parentFolderId: folder_id,status: 'active' }});
+      const files = await File.findAll({where: {folderId: folder_id,status: 'active'}});
+      res.status(200).json({folders:folders, files:files});
     }
   } catch (error) {
     res.status(500).json({ error: "An error occurred while fetching folders" });
   }
 };
 
-const getFolderById = async (req, res) => {
-  try {
-    const folder = await Folder.findOne(req.params.id);
-    if (!folder) return res.status(404).json({ message: "Folder not found" });
-    res.status(200).json(folder);
-  } catch (error) {
-    res.status(400).json({ message: "Error fetching folder", error: error.message });
-  }
-};
+// const getFolderById = async (req, res) => {
+//   try {
+//     const folder = await Folder.findOne(req.params.id);
+//     if (!folder) return res.status(404).json({ message: "Folder not found" });
+//     res.status(200).json(folder);
+//   } catch (error) {
+//     res.status(400).json({ message: "Error fetching folder", error: error.message });
+//   }
+// };
 
 const deleteFolder = async (req, res) => {
   try {
@@ -64,7 +67,6 @@ const deleteFolder = async (req, res) => {
 module.exports = {
   createFolder,
   getFoldersByUser,
-  getParentFolders,
-  getFolderById,
+  getFoldersWithFiles,
   deleteFolder,
 };
