@@ -2,16 +2,12 @@ const express = require("express");
 const bodyParser = require('body-parser');
 const cors= require('cors');
 const DB= require('./DBconnection.js');
-const multer= require('multer');
-const upload = multer({ dest: 'uploads/' });
+// const multer= require('multer');
+// const upload = multer({ dest: 'uploads/' });
 
 require('dotenv').config();
 const app = express()
 
-app.post('/profile', upload.single('avatar'), function (req, res, next) {
-  // req.file is the `avatar` file
-  // req.body will hold the text fields, if there were any
-})
 
 // Middleware
 app.use(bodyParser.json());
