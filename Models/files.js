@@ -12,18 +12,22 @@ File.init(
       primaryKey: true,
       autoIncrement: true,
     },
-    name: {
+    filename: {
       type: DataTypes.STRING,
       allowNull: false,
     },
-    fileType: {
+    filepath: { 
       type: DataTypes.STRING,
       allowNull: false,
     },
-    // size: {
-    //   type: DataTypes.INTEGER,
-    //   allowNull: false,
-    // },
+    filesize: {
+      type: DataTypes.INTEGER, // Assuming filesize will be stored in bytes
+      allowNull: false,
+    },
+    mimetype: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
     userId: {
       type: DataTypes.INTEGER,
       allowNull: false,
@@ -42,7 +46,7 @@ File.init(
     },
     status: {
       type: DataTypes.ENUM("active", "deleted"),
-      default: "active",
+      defaultValue: "active",
     },
   },
   {
@@ -52,7 +56,7 @@ File.init(
     indexes: [
       {
         unique: true,
-        fields: ['name', 'folderId']
+        fields: ['filename', 'folderId']
       }
     ],
   }
