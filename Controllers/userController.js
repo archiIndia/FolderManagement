@@ -34,11 +34,13 @@ const userLogIn = async (req, res) => {
     const base64String = req.body.password;
     const buffer = Buffer.from(base64String, 'base64');
     const decodedString = buffer.toString('utf-8');
+    console.log('decodedString',decodedString);
     const userEmail = req.body.useremail;
     const matchedUser = await User.findOne({ where: { email: userEmail } });
     const is_matched = await compare(decodedString, matchedUser.password);
+    console.log('is_matched',is_matched);
     const token= jwt.sign({ user_id: matchedUser.id },process.env.SECRET, {expiresIn: 24*60*60}); // Have to provide a secret key in .env
-
+    console.log('Token',token);
     if (is_matched === true) {
       // console.log('Log In Sucessful');
       res.status(200).json({ message: 'Log In Successful',token });

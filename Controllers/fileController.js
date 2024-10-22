@@ -69,6 +69,25 @@ const getFilesByFolderId = async (req, res) => {
 //   }
 // };
 
+const getFileById = async (req, res) => {
+  try {
+    const file_id = req.params.id;
+    const file = await File.findOne({ where: { id: file_id } });
+    const filePath = file.filepath; // Use the path saved in your database
+    const fileName = file.filename; // Use the filename to serve the file
+
+    // Sending the file to the client
+    res.download(filePath, fileName, (err) => {
+      if (err) {
+        console.log("Error in file download:", err);
+        res.status(500).send({ message: "Could not download the file" });
+      }
+    });
+  } catch (error) {
+    res.status(500).send({ message: "Server error" });
+  }
+};
+
 const deleteFile = async (req, res) => {
   try {
     const file = await File.findOne(req.params.id);
@@ -80,4 +99,4 @@ const deleteFile = async (req, res) => {
   }
 };
 
-module.exports = { uploadFile, getFilesByFolderId, deleteFile };
+module.exports = { uploadFile, getFilesByFolderId, getFileById, deleteFile };

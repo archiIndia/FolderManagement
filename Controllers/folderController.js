@@ -1,5 +1,6 @@
 const File = require("../Models/files.js");
 const Folder = require("../Models/folders.js");
+const { all } = require("../Routes/folderRoutes.js");
 
 const createFolder = async (req, res) => {
   try {
@@ -25,18 +26,42 @@ const getFoldersByUser = async (req, res) => {
 const getFoldersWithFiles = async (req, res) => {
   try {
     const folder_id = req.params.id;
-    console.log("folder_id", req.params.id);
     if (folder_id === "root") {
-      const parent_folders = await Folder.findAll({ where: { parentFolderId: null,status: 'active' }});
-      const root_files = await File.findAll({where: {folderId: null,status: 'active'}});
-      res.status(200).json({folders:parent_folders, files:root_files}); 
+      const parent_folders = await Folder.findAll({ where: { parentFolderId: null, status: "active" } });
+      const root_files = await File.findAll({ where: { folderId: null, status: "active" } });
+      res.status(200).json({ folders: parent_folders, files: root_files });
     } else {
-      const folders = await Folder.findAll({ where: { parentFolderId: folder_id,status: 'active' }});
-      const files = await File.findAll({where: {folderId: folder_id,status: 'active'}});
-      res.status(200).json({folders:folders, files:files});
+      const folders = await Folder.findAll({ where: { parentFolderId: folder_id, status: "active" } });
+      const files = await File.findAll({ where: { folderId: folder_id, status: "active" } });
+      res.status(200).json({ folders: folders, files: files });
     }
   } catch (error) {
     res.status(500).json({ error: "An error occurred while fetching folders" });
+  }
+};
+
+const getFoldersMenu = async (req, res) => {
+  try {
+    const all_folders_raw = await Folder.findAll();
+    const all_folders = all_folders_raw?.map((folder) => folder.toJSON());
+
+    function buildTree(folders, parentFolderId = null) {
+      const tree = [];
+      folders
+        .filter((folder) => folder.parentFolderId === parentFolderId)
+        .forEach((folder) => {
+          const children = buildTree(folders ?? [], folder.id);
+          if (children.length) {
+            folder.children = children;
+          } 
+          tree.push(folder);
+        });
+      return tree;
+    }
+    const response = buildTree(all_folders);
+    res.status(201).json(response);
+  } catch (error) {
+    res.status(400).json({ message: "Error fetching folder", error: error.message });
   }
 };
 
@@ -68,5 +93,6 @@ module.exports = {
   createFolder,
   getFoldersByUser,
   getFoldersWithFiles,
+  getFoldersMenu,
   deleteFolder,
 };
