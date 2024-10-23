@@ -10,37 +10,40 @@ require('dotenv').config();
 const app = express();
 
 // Middleware
-app.use(bodyParser.json());
 app.use(cors());
 app.use(express.static('public'));
 app.use(fileUpload());
+app.use(bodyParser.json());
+
 
 const verifyToken = (req, res, next) => {
   const token = req.headers['authorization']?.split(' ')[1];
-  
+  // console.log('Token',token);
   if (!token) {
     return res.status(403).json({ message: 'No token provided' });
   }
 
-  jwt.verify(token, process.env.SECRET, (err, decoded) => {
+  jwt.verify(token,'archi', (err, decoded) => {
     if (err) {
       return res.status(401).json({ message: 'Unauthorized' });
     }
-    req.user = decoded;
+    req.userId = decoded?.user_id; // Extract userId from the decoded token
+    // console.log('ICode',decoded);
     next();
   });
 };
 
 // Apply to protected routes
-app.get('/dashboard', verifyToken, (req, res) => {
-  res.json({ message: 'Protected data', user: req.user });
-});
+// app.get('/dashboard/root', verifyToken, (req, res) => {
+//   console.log('req',req);
+//   res.json({ message: 'Protected data', user: req.user });
+// });
 
 
 // Routes
 app.use('/users', require('./Routes/userRoutes.js'));
-app.use('/folders', require('./Routes/folderRoutes.js'));
-app.use('/files', require('./Routes/fileRoutes.js'));
+app.use('/folders',verifyToken, require('./Routes/folderRoutes.js'));
+app.use('/files',verifyToken, require('./Routes/fileRoutes.js'));
 
 // Serve static files from 'uploads' folder (optional)
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));

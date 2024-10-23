@@ -4,8 +4,10 @@ const { all } = require("../Routes/folderRoutes.js");
 
 const createFolder = async (req, res) => {
   try {
-    const { name, userId, parentFolderId } = req.body;
-    const newFolder = await Folder.create({ name, userId, parentFolderId });
+    const userId = req.userId; // Get the userId from the verified token
+    console.log('id',userId);
+    const { name, parentId } = req.body;
+    const newFolder = await Folder.create({ name:name, userId:userId, parentFolderId:parentId });
     res.status(201).json(newFolder);
   } catch (error) {
     res.status(400).json({ message: "Error creating folder", error: error.message });
@@ -14,8 +16,9 @@ const createFolder = async (req, res) => {
 
 const getFoldersByUser = async (req, res) => {
   try {
+    const userId = req.userId; // Get the userId from the verified token
     const folders = await Folder.findAll({
-      where: { userId: req.params.userId },
+      where: { userId: userId },
     });
     res.status(200).json(folders);
   } catch (error) {
@@ -25,14 +28,15 @@ const getFoldersByUser = async (req, res) => {
 
 const getFoldersWithFiles = async (req, res) => {
   try {
+    const userId = req.userId; // Get the userId from the verified token
     const folder_id = req.params.id;
     if (folder_id === "root") {
-      const parent_folders = await Folder.findAll({ where: { parentFolderId: null, status: "active" } });
-      const root_files = await File.findAll({ where: { folderId: null, status: "active" } });
+      const parent_folders = await Folder.findAll({ where: {userId:userId, parentFolderId: null, status: "active" } });
+      const root_files = await File.findAll({ where: {userId:userId, folderId: null, status: "active" } });
       res.status(200).json({ folders: parent_folders, files: root_files });
     } else {
-      const folders = await Folder.findAll({ where: { parentFolderId: folder_id, status: "active" } });
-      const files = await File.findAll({ where: { folderId: folder_id, status: "active" } });
+      const folders = await Folder.findAll({ where: {userId:userId, parentFolderId: folder_id, status: "active" } });
+      const files = await File.findAll({ where: {userId:userId, folderId: folder_id, status: "active" } });
       res.status(200).json({ folders: folders, files: files });
     }
   } catch (error) {
@@ -42,7 +46,8 @@ const getFoldersWithFiles = async (req, res) => {
 
 const getFoldersMenu = async (req, res) => {
   try {
-    const all_folders_raw = await Folder.findAll();
+    const userId = req.userId; // Get the userId from the verified token
+    const all_folders_raw = await Folder.findAll({where: {userId:userId}});
     const all_folders = all_folders_raw?.map((folder) => folder.toJSON());
 
     function buildTree(folders, parentFolderId = null) {
@@ -77,12 +82,9 @@ const getFoldersMenu = async (req, res) => {
 
 const deleteFolder = async (req, res) => {
   try {
-    // const folder = await Folder.findOne(req.params.id);
-    // if (!folder) return res.status(404).json({ message: 'Folder not found' });
-    // await folder.destroy();
-    // res.status(204).json({ message: 'Folder deleted' });
+    const userId = req.userId; // Get the userId from the verified token
     const del_id = req.params.id;
-    const del_folder = await Folder.update({ status: "deleted" }, { where: { id: del_id, status: "active" } });
+    const del_folder = await Folder.update({ status: "deleted" }, { where: {userId:userId, id: del_id, status: "active" } });
     res.status(202).json({ messages: "Folder deleted Successfully" });
   } catch (error) {
     res.status(400).json({ message: "Error deleting folder", error: error.message });
