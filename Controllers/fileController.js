@@ -4,7 +4,8 @@ const path = require("path");
 
 const uploadFile = async (req, res) => {
   try {
-    console.log("req", req.files);
+    console.log("req:", req.files);
+    const userId = req.userId; // Get the userId from the verified token
     let sampleFile;
     let uploadPath;
 
@@ -17,12 +18,26 @@ const uploadFile = async (req, res) => {
 
     // The name of the input field (i.e. "sampleFile") is used to retrieve the uploaded file
     sampleFile = req.files.my_file;
-    // uploadPath = __dirname + "/somewhere/on/your/server/" + sampleFile.name;
-    uploadPath = path.join(uploadDir, sampleFile?.name);
-
     const folderId = req.body.folderId;
-    console.log("folderId", folderId);
-    // Use the mv() method to place the file somewhere on your server
+
+    // Check if the file already exists in the database for this folder
+    const existingFile = await File.findOne({
+      where: {
+        filename: sampleFile.name,
+        folderId: folderId,
+      },
+    });
+
+    // If the file exists, append a timestamp to the filename to make it unique
+    let finalFilename = sampleFile.name;
+    if (existingFile) {
+      const timestamp = Date.now();
+      finalFilename = `${path.parse(sampleFile.name).name}-${timestamp}${path.extname(sampleFile.name)}`;
+    }
+    // Set the upload path to use the unique filename
+    uploadPath = path.join(uploadDir, finalFilename);
+
+    // Move the file to the upload path
     sampleFile.mv(uploadPath, async (err) => {
       if (err) {
         console.error(err);
@@ -31,12 +46,12 @@ const uploadFile = async (req, res) => {
 
       // Save file details to the database
       const newFile = await File.create({
-        filename: sampleFile.name,
+        filename: finalFilename,
         filepath: uploadPath,
         filesize: sampleFile.size,
         mimetype: sampleFile.mimetype,
         folderId: folderId,
-        userId: 1,
+        userId: userId,
       });
       res.status(200).json({
         message: "File uploaded and saved successfully!",
@@ -51,7 +66,8 @@ const uploadFile = async (req, res) => {
 
 const getFilesByFolderId = async (req, res) => {
   try {
-    const files = await File.findAll({ where: { folderId: req.params.folderId } });
+    const userId = req.userId;
+    const files = await File.findAll({ where: { userId: userId, folderId: req.params.folderId } });
     res.status(200).json(files);
   } catch (error) {
     res.status(400).json({ message: "Error fetching files", error: error.message });
@@ -61,6 +77,7 @@ const getFilesByFolderId = async (req, res) => {
 // const getFilesByRoot = async (req, res) => {
 //   try {
 //     console.log(req.params.id);
+// const userId = req.userId;
 //     const file = await File.findAll({ where: {folderId: null , status: "active" } });
 //     if (!file) return res.status(404).json({ message: "File not found" });
 //     res.status(200).json(file);
@@ -69,9 +86,30 @@ const getFilesByFolderId = async (req, res) => {
 //   }
 // };
 
+const getFileById = async (req, res) => {
+  try {
+    const file_id = req.params.id;
+    const userId = req.userId;
+    const file = await File.findOne({ where: { userId: userId, id: file_id } });
+    const filePath = file.filepath; // Use the path saved in your database
+    const fileName = file.filename; // Use the filename to serve the file
+
+    // Sending the file to the client
+    res.download(filePath, fileName, (err) => {
+      if (err) {
+        console.log("Error in file download:", err);
+        res.status(500).send({ message: "Could not download the file" });
+      }
+    });
+  } catch (error) {
+    res.status(500).send({ message: "Server error" });
+  }
+};
+
 const deleteFile = async (req, res) => {
   try {
     const file = await File.findOne(req.params.id);
+    const userId = req.userId;
     if (!file) return res.status(404).json({ message: "File not found" });
     await file.destroy();
     res.status(204).json({ message: "File deleted" });
@@ -80,4 +118,4 @@ const deleteFile = async (req, res) => {
   }
 };
 
-module.exports = { uploadFile, getFilesByFolderId, deleteFile };
+module.exports = { uploadFile, getFilesByFolderId, getFileById, deleteFile };
