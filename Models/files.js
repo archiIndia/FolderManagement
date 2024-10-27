@@ -65,9 +65,9 @@ File.init(
 File.belongsTo(User, { foreignKey: "userId" });
 File.belongsTo(Folder, { foreignKey: "folderId" });
 
-File.sync()
-.then(() => {
-  console.log('Database & tables created!');
-});
+// File.sync()
+// .then(() => {
+//   console.log('Database & tables created!');
+// });
 
 module.exports = File;

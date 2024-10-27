@@ -1,6 +1,7 @@
-const { where } = require("sequelize");
+const fs = require('fs');
+const path = require('path');
 const File = require("../Models/files.js");
-const path = require("path");
+
 
 const uploadFile = async (req, res) => {
   try {
@@ -18,7 +19,7 @@ const uploadFile = async (req, res) => {
 
     // The name of the input field (i.e. "sampleFile") is used to retrieve the uploaded file
     sampleFile = req.files.my_file;
-    const folderId = req.body.folderId;
+    const folderId = req.body.folderId || null;
 
     // Check if the file already exists in the database for this folder
     const existingFile = await File.findOne({
@@ -43,7 +44,7 @@ const uploadFile = async (req, res) => {
         console.error(err);
         return res.status(500).send(err);
       }
-
+      console.log('folderId',folderId);
       // Save file details to the database
       const newFile = await File.create({
         filename: finalFilename,
@@ -53,7 +54,7 @@ const uploadFile = async (req, res) => {
         folderId: folderId,
         userId: userId,
       });
-      res.status(200).json({
+      res.status(201).json({
         message: "File uploaded and saved successfully!",
         file: newFile, // Return the saved file details
       });
@@ -108,14 +109,35 @@ const getFileById = async (req, res) => {
 
 const deleteFile = async (req, res) => {
   try {
-    const file = await File.findOne(req.params.id);
-    const userId = req.userId;
+    // Find the file by ID
+    const file = await File.findOne({ where: { id: req.params.id } });
     if (!file) return res.status(404).json({ message: "File not found" });
-    await file.destroy();
-    res.status(204).json({ message: "File deleted" });
+
+    const userId = req.userId;
+
+    // If the filepath in the database is a full path, use it directly
+    const filePath = file.filepath.includes('uploads') 
+      ? file.filepath 
+      : path.join(__dirname, 'uploads', file.filepath);
+
+    // Delete the file from the server
+    fs.unlink(filePath, async (err) => {
+      if (err) {
+        console.error('Error deleting the file:', err);
+        return res.status(500).json({ message: "Error deleting the file from server", error: err.message });
+      }
+
+      // Update the file status to 'deleted' in the database
+      file.status = 'deleted'; // Change status
+      await file.save(); // Save the changes
+
+      res.status(204).json({ message: "File deleted sucessfully" });
+    });
   } catch (error) {
+    console.error('Error:', error);
     res.status(400).json({ message: "Error deleting file", error: error.message });
   }
 };
+
 
 module.exports = { uploadFile, getFilesByFolderId, getFileById, deleteFile };

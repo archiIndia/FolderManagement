@@ -43,5 +43,6 @@ User.init(
 //   console.log('Database & tables created!');
 // });
 
+  
 module.exports = User;
 
