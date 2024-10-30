@@ -5,7 +5,6 @@ const { all } = require("../Routes/folderRoutes.js");
 const createFolder = async (req, res) => {
   try {
     const userId = req.userId; // Get the userId from the verified token
-    console.log('id',userId);
     const { name, parentId } = req.body;
     const newFolder = await Folder.create({ name:name, userId:userId, parentFolderId:parentId });
     res.status(201).json(newFolder);
@@ -80,6 +79,21 @@ const getFoldersMenu = async (req, res) => {
 //   }
 // };
 
+const updateFolder= async(req,res)=>{
+  try{
+  console.log('Body',req.body);
+  const parentFolderId= req?.body?.payload?.parentId;
+  const folder_name= req?.body?.payload?.name;
+  const folder_id= req?.body?.folderId;
+    console.log('f_id',folder_id);
+    console.log('f_name',folder_name);
+  const update_folder= await Folder.update({name: folder_name},{where: {id:folder_id}});
+  res.status(202).json(update_folder);
+  }catch(error){
+    res.status(400).json({ message: "Error updating folder", error: error.message });
+  }
+};
+
 const deleteFolder = async (req, res) => {
   try {
     const userId = req.userId; // Get the userId from the verified token
@@ -96,5 +110,6 @@ module.exports = {
   getFoldersByUser,
   getFoldersWithFiles,
   getFoldersMenu,
+  updateFolder,
   deleteFolder,
 };
